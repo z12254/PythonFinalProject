@@ -6,7 +6,7 @@ import requests
 #These lines import the required packages
 
 
-
+#Zack's portion
 
 API_KEY = "1e2818762094064f311ceb8819ae47fb"
 SYMBOLS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META","TSLA", "AMD", "INTC", "F"]
@@ -30,5 +30,6 @@ print(data)
 df = pd.DataFrame(data['data'])
 df = df[['symbol','date','high']]
 
+#end of Zacks portion
 
 
