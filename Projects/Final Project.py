@@ -14,12 +14,7 @@ DATE_FROM = '2025-06-28'
 DATE_TO = '2025-07-28'
 symbols_str = ",".join(SYMBOLS)
 
-url = (
-    f"http://api.marketstack.com/v1/eod"
-    f"?access_key={API_KEY}"
-    f"&symbols={symbols_str}"
-    f"&date_from={DATE_FROM}"
-    f"&date_to={DATE_TO}")
+url = (f"http://api.marketstack.com/v1/eod"f"?access_key={API_KEY}"f"&symbols={symbols_str}"f"&date_from={DATE_FROM}"f"&date_to={DATE_TO}")
 # these lines define the variables needed to pull the desired data from the API
 
 r = requests.get(url)
