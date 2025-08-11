@@ -18,12 +18,10 @@ url = (f"http://api.marketstack.com/v1/eod"f"?access_key={API_KEY}"f"&symbols={s
 
 r = requests.get(url)
 data = r.json()
-print(data)
 # These lines pull the requested data from the API
 
 df = pd.DataFrame(data['data'])
 df = df[['symbol','date','high','close','low','volume']]
-print(df.head())
 #end of Zack's portion
 
 
