@@ -23,6 +23,8 @@ data = r.json()
 df = pd.DataFrame(data['data'])
 df = df[['symbol','date','high','close','low','volume']]
 df_symbol_date_high = df[['symbol','date','high']]
+# These lines create 2 dataframes, one with all the data, and one with just the symbol, date, and high, for ease of use.
+
 #end of Zack's portion
 
 
