@@ -22,6 +22,7 @@ data = r.json()
 
 df = pd.DataFrame(data['data'])
 df = df[['symbol','date','high','close','low','volume']]
+df_symbol_date_high= df[['symbol','date','high']]
 #end of Zack's portion
 
 
