@@ -28,8 +28,8 @@ print(data)
 # These lines pull the requested data from the API
 
 df = pd.DataFrame(data['data'])
-df = df[['symbol','date','high']]
-
-#end of Zacks portion
+df = df[['symbol','date','high','close','low','volume']]
+print(df.head())
+#end of Zack's portion
 
 
