@@ -11,8 +11,8 @@ import requests
 API_KEY = "25ef9f82c4a9f4a53fd45be2d8bc255a"
 SYMBOLS= ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META","TSLA", "AMD", "INTC", "F"]
 
-DATE_FROM = '2025-04-28'
-DATE_TO = '2025-07-28'
+DATE_FROM = '2025-01-01'
+DATE_TO = '2025-08-01'
 #url = (f"http://api.marketstack.com/v1/eod"f"?access_key={API_KEY}"f"&symbols={symbols_str}"f"&date_from={DATE_FROM}"f"&date_to={DATE_TO}")
 url = "http://api.marketstack.com/v1/eod"
 request_limit = 1000
@@ -39,61 +39,68 @@ all_rows.extend(rows)
 if len(rows) < limit:
   break
 offset += limit
+
+return all_rows 
 #end of Zack's portion
 
 
 #michelle portion
 import requests
 import pandas as pd
-from datetime import datetime
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 import plotly.express as px
 
-# In case it fails it returns an empty dataframe
-
-except Exception as f:
-    print("Download warning:", f)
-    return pd.DataFrame(columns=["symbol", "date", "high", "close", "low", "volume"])
-
-    if not rows_all:
-        return pd.DataFrame(columns=["symbol", "date", "high", "close", "low", "volume"])
+try: 
+  rows_all =  fetch_EOD(symbols, start_date, end_date, api_key)
 
 # creating a DataFrame and only keeping the required columns while N/A values are filled 
-    df = pd.DataFrame(rows_all)
-    required = ["symbol", "date", "high", "close", "low", "volume"]
-    for col in needed:
+    if not rows_all:
+      df = pd.DataFrame(columns=["symbol", "date", "high", "close", "low"])
+    else:
+      df = pd.DataFrame(rows_all)
+      required = ["symbol", "date", "high", "close", "low"]
+      for col in required:
         if col not in df.columns:
-            df[col] = pd.NA
-    df = df[required].copy()
+          df[col]= pd.NA
+            
+#need to make a copy of the require data frame for error processing thereafter
+      df = df[required].copy()
 
-    # the datetime needed to be changed to allow it to properly pulled in the correct format and drop any values that will throw errors due to formatting
+# the datetime needed to be changed to allow it to be properly pulled in the correct format and drop any values that will throw errors due to formatting
     df["date"] = pd.to_datetime(df["date"], utc=True, errors="coerce")
     df = df.dropna(subset=["date"])  
     df["date"] = df["date"].dt.tz_convert(None)
 
-    # Sort for plotting the data
+# Sort for plotting the data
     df = df.sort_values(["symbol", "date"]).reset_index(drop=True)
     return df
 
-#creating the dashboard
+# In case it fails it returns an empty dataframe
+except Exception as f:
+    print("Download warning:", f)
+    return pd.DataFrame(columns=["symbol", "date", "high", "close", "low"])
+
+#creating the dashboard and making it pretty 
 app = Dash(__name__)
 app.title = "Stock Performance Dashboard"
 
 app.layout = html.Div(
-  style={"maxWidth": "1100px", "margin": "0 auto"},
-  children=[html.H1("Stock Performance Dashboard", style={"textAlign": "center"}),
-            html.Div(
-              style={"display"=s "flex","alignItems":"flex end"},
-  children=[html.Div(style={"flex": "1 1 320px", "minWidth": "280px"},
+    style={"maxWidth": "1100px", "margin": "0 auto","padding":"14px"},
+    children=[html.H1("Stock Performance Dashboard", style={"textAlign": "center"}),
+              html.Div(style={"display"=s "flex","alignItems":"flex end", "gap":"14px"},
+                children=[html.Div(style={"flex": "1 1 320px", "minWidth": "280px"},
                      children=[html.Label("Select only two tickers:"),
-                     dcc.Dropdown(id="compare-tickers",
+                         dcc.Dropdown(id="compare-tickers",
                                   options=[{"label":s, "value":s} for s in sorted(df["symbol"].unique())],
                                   value=["AAPL", "MSFT"],
                                   multi=True
-                                 ),
-                        children=[
-                        html.Label("Select date range (within downloaded window):"),
+                                     ),
+                              ],
+                                  ),
+                        
+                    children=[
+                        html.Label("Select date range (within window):"),
                         dcc.DatePickerRange(
                             id="date-picker",
                             start_date=DATE_FROM,
@@ -104,34 +111,43 @@ app.layout = html.Div(
                         ),
                         html.Div(
                             f"Available data window: {DATE_FROM} → {DATE_TO}",
-                            style={"fontSize": "12px", "marginTop": "6px"})])]),
+                            style={"fontSize": "12px", "marginTop": "6px"},
+                        ),
+                ],
+),
+],
+),
                         html.Hr(),
-                        html.H1("Daily High (Time-Series Context)"),
+                        html.H2("Daily High (Time-Series Context)"),
                         dcc.Graph(id="timeseries-high", config={"displayModeBar": True}),
-                        html.H2("Mean High Comparison Bar Chart)"),
-                        dcc.Graph(id="mean-high-output", config={"displayModeBar": True})])
+                        html.H2("Mean High Comparison Bar Chart"),
+                        dcc.Graph(id="mean-high-output", config={"displayModeBar": True}),
+],
+)
 
+#validates the data and only allows two tickers (too complicated with more)
 def _validate_selection(tickers):
     if not tickers:
         return False, "Please select two tickers."
     if len(tickers) != 2:
         return False, f"Please select exactly two tickers (current selection: {len(tickers)})."
-    return True, "
-  
-def _filter_data(df, tickers, start_date, end_date):
+    return True, ""
 
-    if df.empty:
-        return df.copy()
+#filters the data based on tickers and date range  
+def _filter_data(df_input, tickers, start_date, end_date):
+
+    if df_input.empty:
+        return df_input.copy()
 
     start = pd.to_datetime(start_date)
     end = pd.to_datetime(end_date)
-    mask = (
-        df["symbol"].isin(tickers)
-        & (df["date"] >= start)
-        & (df["date"] <= end)
-    )
-    return df.loc[mask].copy()
+    mask =
+        df_input["symbol"].isin(tickers)
+        & (df_input["date"] >= start)
+        & (df_input["date"] <= end)
+    return df_input.loc[mask].copy()
 
+#main callback as it validates and filters the data and creates the figures aka chart
 @app.callback(
     Output("timeseries-high", "figure"),
     Output("mean-high-output", "figure"),
@@ -149,10 +165,10 @@ def update_figures(tickers, start_date, end_date):
             "layout": {
                 "title": msg,
                 "xaxis": {"visible": False},
-                "yaxis": {"visible": False}}}
+                "yaxis": {"visible": False}},}
         return empty_fig, empty_fig
     
-    filtered = _filter_data(df_all, tickers, start_date, end_date)
+    filtered = _filter_data(df, tickers, start_date, end_date)
 
     if filtered.empty:
         msg = f"No data for {tickers} between {start_date} and {end_date}."
@@ -161,10 +177,11 @@ def update_figures(tickers, start_date, end_date):
             "layout": {
                 "title": msg,
                 "xaxis": {"visible": False},
-                "yaxis": {"visible": False}}}
+                "yaxis": {"visible": False}},
+        }
         return empty_fig, empty_fig
       
-#creating a line graph to show general daily high across a time range
+#creating a line graph to show the time series daily high
 
    fig = px.line(
         filtered,
@@ -173,27 +190,30 @@ def update_figures(tickers, start_date, end_date):
         color="symbol",
         markers=True,
         labels={"date": "Date", "high": "Daily High (USD)", "symbol": "Ticker"},
-        title=f"Daily High for {tickers[0]} vs {tickers[1]} ({start_date} → {end_date})")
+        title=f"Daily High for {tickers[0]} vs {tickers[1]} ({start_date} → {end_date})",
+   )
 
-#defining mean high
+#creating a bar chart to show the mean high for each stock and comparing the avg
     mean_high = (
-        filtered.groupby("symbol", as_index=False)["high"]
-        .mean()
-        .rename(columns={"high": "mean_high"}))
+        filtered.groupby("symbol", as_index=False)["high"].mean().rename(columns={"high": "mean_high"}))
 
-#creating a bar chart to show the mean high comparison of two symbols across a date range
+
     bar_fig = px.bar(
         mean_high,
         x="symbol",
         y="mean_high",
         text="mean_high",
         labels={"symbol": "Ticker", "mean_high": "Mean High (USD)"},
-        title=f"Mean High Comparison ({start_date} → {end_date})")
+        title=f"Mean High Comparison ({start_date} → {end_date})",
+    )
 
     return fig, bar_fig
 
+#application run
 if __name__ == "__main__":
     app.run(debug=True)
+
+
 #end of michelle portion                          
 
 
