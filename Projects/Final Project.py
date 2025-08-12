@@ -92,9 +92,6 @@ app.layout = html.Div(
                                   value=["AAPL", "MSFT"],
                                   multi=True
                                  ),
-                               html.Div( "Tip: Choose exactly two tickers to compare their mean high.",
-                                        style={"fontSize": "12px", "color": "#555", "marginTop": "6px"})]),
-                                html.Div(style={"flex": "1 1 320px", "minWidth": "280px"},
                         children=[
                         html.Label("Select date range (within downloaded window):"),
                         dcc.DatePickerRange(
@@ -144,7 +141,7 @@ def _filter_data(df, tickers, start_date, end_date):
 )
 def update_figures(tickers, start_date, end_date):
 
-  # Validate selection
+  # Validate selection and if there is any error or no data it gives blank space and message
     ok, msg = _validate_selection(tickers)
     if not ok:
         empty_fig = {
@@ -152,18 +149,8 @@ def update_figures(tickers, start_date, end_date):
             "layout": {
                 "title": msg,
                 "xaxis": {"visible": False},
-                "yaxis": {"visible": False},
-                "annotations": [{
-                    "text": msg,
-                    "xref": "paper",
-                    "yref": "paper",
-                    "showarrow": False,
-                    "font": {"size": 16}
-                }]
-            },
-        }
+                "yaxis": {"visible": False}}}
         return empty_fig, empty_fig
-
     
     filtered = _filter_data(df_all, tickers, start_date, end_date)
 
@@ -174,16 +161,7 @@ def update_figures(tickers, start_date, end_date):
             "layout": {
                 "title": msg,
                 "xaxis": {"visible": False},
-                "yaxis": {"visible": False},
-                "annotations": [{
-                    "text": "Try adjusting the date range.",
-                    "xref": "paper",
-                    "yref": "paper",
-                    "showarrow": False,
-                    "font": {"size": 16}
-                }]
-            },
-        }
+                "yaxis": {"visible": False}}}
         return empty_fig, empty_fig
       
 #creating a line graph to show general daily high across a time range
