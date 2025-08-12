@@ -8,7 +8,7 @@ import requests
 
 #Zack's portion
 
-API_KEY = "1e2818762094064f311ceb8819ae47fb"
+API_KEY = "25ef9f82c4a9f4a53fd45be2d8bc255a"
 SYMBOLS= ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META","TSLA", "AMD", "INTC", "F"]
 
 DATE_FROM = '2025-04-28'
