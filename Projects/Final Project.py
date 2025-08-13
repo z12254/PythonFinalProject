@@ -17,7 +17,7 @@ api_key = str
 API key for accessing the API
 """
 
-API_KEY = "25ef9f82c4a9f4a53fd45be2d8bc255a"
+API_KEY = "341b52bbc5139f30158294cc87640301"
 SYMBOLS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "AMD", "INTC", "F"]
 DATE_FROM = '2025-01-01'
 DATE_TO = '2025-08-01'
