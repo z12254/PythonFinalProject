@@ -65,6 +65,30 @@ except Exception as e:
     print("Download warning:", e)
     df = pd.DataFrame(columns=["symbol", "date", "high", "close", "low"])
 
+#Ayesha's Portion
+
+def average_top10_high(df):
+    """
+    Returns the average 'high' price for the top 10 stocks ranked by mean high.
+    """
+    if df.empty:
+        return None
+    mean_high_per_stock = df.groupby("symbol", as_index=False)["high"].mean()
+    top10 = mean_high_per_stock.sort_values(by="high", ascending=False).head(10)
+    return top10["high"].mean()
+
+
+def top10_highest_volatility(df):
+    """
+    Returns a DataFrame of the top 10 stocks with the highest volatility
+    (standard deviation of daily high prices).
+    """
+    if df.empty:
+        return pd.DataFrame(columns=["symbol", "volatility"])
+    vol_per_stock = df.groupby("symbol", as_index=False)["high"].std()
+    vol_per_stock = vol_per_stock.rename(columns={"high": "volatility"})
+    return vol_per_stock.sort_values(by="volatility", ascending=False).head(10)
+
 
 # --- Dash App Starts Here ---
 
@@ -115,6 +139,23 @@ app.layout = html.Div(
         dcc.Graph(id="timeseries-high", config={"displayModeBar": True}),
         html.H2("Mean High Comparison Bar Chart"),
         dcc.Graph(id="mean-high-output", config={"displayModeBar": True}),
+
+        html.H3(f"Average 'High' Price (Top 10 Stocks): {average_top10_high(df):.2f} USD",
+                style={"textAlign": "center", "color": "darkblue"}),
+
+        html.H3("Top 10 Most Volatile Stocks (Std Dev of High Price):",
+                style={"textAlign": "center", "color": "darkred"}),
+
+        dcc.Graph(
+            figure=px.bar(
+                top10_highest_volatility(df),
+                x="symbol",
+                y="volatility",
+                text_auto=True,
+                labels={"symbol": "Ticker", "volatility": "Volatility (Std Dev)"},
+                title="Top 10 Most Volatile Stocks"
+            )
+        ),
     ]
 )
 
