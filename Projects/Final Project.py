@@ -5,6 +5,18 @@ from dash.dependencies import Input, Output
 import plotly.express as px
 
 # --- Zack's portion (fixed) ---
+""""
+PARAMETERS
+---------------
+symbols: list of str
+list of stock symbols to fetch 
+start_date: str
+start date in YYYY-MM-DD format.
+end date in YYYY-MM-DD format.
+api_key = str
+API key for accessing the API
+""""
+
 API_KEY = "25ef9f82c4a9f4a53fd45be2d8bc255a"
 SYMBOLS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "AMD", "INTC", "F"]
 DATE_FROM = '2025-01-01'
@@ -12,7 +24,16 @@ DATE_TO = '2025-08-01'
 URL = "http://api.marketstack.com/v1/eod"
 REQUEST_LIMIT = 1000
 
+#Fetch EOD stock price data for tickers within a date range.
+
+
 def fetch_EOD(symbols, start_date, end_date, api_key):
+""""
+Returns
+-------
+list of dict
+A list of dictionaries containing EOD stock data with keys such as 'symbol', 'date from', 'high', 'date to', and 'close','low'.
+""""
     all_rows = []
     symbols_str = ",".join(symbols)
     offset = 0
@@ -41,7 +62,7 @@ def fetch_EOD(symbols, start_date, end_date, api_key):
 
 # --- Michelle's portion (fixed) ---
 
-# Attempt to get the data
+# Attempt to get the data fetch EOD stock price 
 try:
     rows_all = fetch_EOD(SYMBOLS, DATE_FROM, DATE_TO, API_KEY)
 
@@ -57,13 +78,13 @@ try:
 
         df["date"] = pd.to_datetime(df["date"], utc=True, errors="coerce")
         df = df.dropna(subset=["date"])
-        df["date"] = df["date"].dt.tz_convert(None)
+        df["date"] = df["date"].dt.tz_convert(None) #change the time zone so that it doesnt give an error
 
         df = df.sort_values(["symbol", "date"]).reset_index(drop=True)
 
 except Exception as e:
     print("Download warning:", e)
-    df = pd.DataFrame(columns=["symbol", "date", "high", "close", "low"])
+    df = pd.DataFrame(columns=["symbol", "date", "high", "close", "low"]) # counting for an error if it occurs
 
 #Ayesha's Portion
 
@@ -90,7 +111,8 @@ def top10_highest_volatility(df):
     return vol_per_stock.sort_values(by="volatility", ascending=False).head(10)
 
 
-# --- Dash App Starts Here ---
+#Michelle portion-Dash App Starts here-------
+
 
 app = Dash(__name__)
 app.title = "Stock Performance Dashboard"
@@ -159,9 +181,21 @@ app.layout = html.Div(
     ]
 )
 
-# --- Callback Helpers ---
 
 def _validate_selection(tickers):
+""""
+validate that exactly two tickers are selected.
+
+Parameters
+--------------
+tickers: list of str
+- list of selected ticker symbols return limit of 1000
+
+Returns
+---------------
+tuple
+(boolean,str) where the boolean indicates if the selection is valid and string shows an error message if it is invalid.
+""""
     if not tickers:
         return False, "Please select two tickers."
     if len(tickers) != 2:
@@ -169,6 +203,23 @@ def _validate_selection(tickers):
     return True, ""
 
 def _filter_data(df_input, tickers, start_date, end_date):
+""""
+PARAMETERS
+---------------
+df_input: Pandas data frame which contains the stock data
+tickers: list of str, 
+selected tickers to filter by
+start_date: str
+start date in YYYY-MM-DD format.
+end date: str
+in YYYY-MM-DD format.
+
+RETURNS
+----------------
+pandas.Dateframe
+filter the stock data by selected 2 tickers and date range
+
+""""
     if df_input.empty:
         return df_input.copy()
     start = pd.to_datetime(start_date)
@@ -190,6 +241,25 @@ def _filter_data(df_input, tickers, start_date, end_date):
     Input("date-picker", "end_date"),
 )
 def update_figures(tickers, start_date, end_date):
+""""
+Update the dashboard based on selected tickers and date range 
+
+Parameters
+------------
+tickers:list of str
+selected tickers to filter by
+start_date: str
+start date in YYYY-MM-DD format.
+end date: str
+in YYYY-MM-DD format.
+
+Returns
+-------------
+tuple 
+(fig _timeseries, fig_bar) where both are Plotly figures
+if selection or data is invalid , returns empty figures with error messages
+""""
+
     ok, msg = _validate_selection(tickers)
     if not ok:
         empty_fig = {
