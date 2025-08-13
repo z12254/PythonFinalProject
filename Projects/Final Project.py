@@ -5,7 +5,7 @@ from dash.dependencies import Input, Output
 import plotly.express as px
 
 # --- Zack's portion (fixed) ---
-""""
+"""
 PARAMETERS
 ---------------
 symbols: list of str
@@ -15,7 +15,7 @@ start date in YYYY-MM-DD format.
 end date in YYYY-MM-DD format.
 api_key = str
 API key for accessing the API
-""""
+"""
 
 API_KEY = "25ef9f82c4a9f4a53fd45be2d8bc255a"
 SYMBOLS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "AMD", "INTC", "F"]
@@ -28,12 +28,14 @@ REQUEST_LIMIT = 1000
 
 
 def fetch_EOD(symbols, start_date, end_date, api_key):
-""""
-Returns
--------
-list of dict
-A list of dictionaries containing EOD stock data with keys such as 'symbol', 'date from', 'high', 'date to', and 'close','low'.
-""""
+    """
+    Returns:
+    -------
+    list of dict
+    A list of dictionaries containing EOD stock data with keys such as 'symbol', 'date from', 'high', 'date to', and 'close','low'.
+    
+    """
+    
     all_rows = []
     symbols_str = ",".join(symbols)
     offset = 0
@@ -183,7 +185,7 @@ app.layout = html.Div(
 
 
 def _validate_selection(tickers):
-""""
+"""
 validate that exactly two tickers are selected.
 
 Parameters
@@ -195,7 +197,7 @@ Returns
 ---------------
 tuple
 (boolean,str) where the boolean indicates if the selection is valid and string shows an error message if it is invalid.
-""""
+"""
     if not tickers:
         return False, "Please select two tickers."
     if len(tickers) != 2:
@@ -203,23 +205,23 @@ tuple
     return True, ""
 
 def _filter_data(df_input, tickers, start_date, end_date):
-""""
-PARAMETERS
+"""
+PARAMETERS:
 ---------------
 df_input: Pandas data frame which contains the stock data
 tickers: list of str, 
 selected tickers to filter by
 start_date: str
-start date in YYYY-MM-DD format.
+start date: in YYYY-MM-DD format.
 end date: str
 in YYYY-MM-DD format.
 
-RETURNS
+RETURNS:
 ----------------
 pandas.Dateframe
-filter the stock data by selected 2 tickers and date range
+filter the stock data by selected 2 tickers and date range.
 
-""""
+"""
     if df_input.empty:
         return df_input.copy()
     start = pd.to_datetime(start_date)
@@ -241,7 +243,7 @@ filter the stock data by selected 2 tickers and date range
     Input("date-picker", "end_date"),
 )
 def update_figures(tickers, start_date, end_date):
-""""
+"""
 Update the dashboard based on selected tickers and date range 
 
 Parameters
@@ -258,7 +260,7 @@ Returns
 tuple 
 (fig _timeseries, fig_bar) where both are Plotly figures
 if selection or data is invalid , returns empty figures with error messages
-""""
+"""
 
     ok, msg = _validate_selection(tickers)
     if not ok:
