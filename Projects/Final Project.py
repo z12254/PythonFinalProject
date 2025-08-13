@@ -95,7 +95,7 @@ def average_top10_high(df):
     Returns the average 'high' price for the top 10 stocks ranked by mean high.
     """
     if df.empty:
-        return None
+        return 0.0
     mean_high_per_stock = df.groupby("symbol", as_index=False)["high"].mean()
     top10 = mean_high_per_stock.sort_values(by="high", ascending=False).head(10)
     return top10["high"].mean()
