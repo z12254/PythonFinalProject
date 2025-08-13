@@ -166,7 +166,7 @@ app.layout = html.Div(
 
         html.H3(f"Average 'High' Price (Top 10 Stocks): {average_top10_high(df):.2f} USD",
                 style={"textAlign": "center", "color": "darkblue"}),
-
+#ayesha portion for Volatile Stocks
         html.H3("Top 10 Most Volatile Stocks (Std Dev of High Price):",
                 style={"textAlign": "center", "color": "darkred"}),
 
