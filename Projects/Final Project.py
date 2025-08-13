@@ -17,30 +17,34 @@ DATE_TO = '2025-08-01'
 url = "http://api.marketstack.com/v1/eod"
 request_limit = 1000
 # these lines define the variables needed to pull the desired data from the API
-def fetch_EOD(symbols, start_date, end_date, api_key):
-  all_rows= []
-  symbols_str = ",".join(symbols)
-  offset = 0
 
-while True:
-  params = {"access_key":api_key,
-            "symbols":symbols_str,
+def fetch_EOD(symbols, start_date, end_date, api_key):
+    all_rows = []
+    symbols_str = ",".join(symbols)
+    offset = 0
+
+    while True:
+        params = {
+            "access_key": api_key,
+            "symbols": symbols_str,
             "date_to": end_date,
             "date_from": start_date,
             "limit": request_limit,
-            "offset": offset}
-r = requests.get(url, params=params, timeout=30)
-r.raise_for_status()
-data = r.json()
-rows = data.get("data",[])
-if not rows:
-  break 
-all_rows.extend(rows)
-if len(rows) < limit:
-  break
-offset += limit
+            "offset": offset
+        }
 
-return all_rows 
+        r = requests.get(url, params=params, timeout=30)
+        r.raise_for_status()
+        data = r.json()
+        rows = data.get("data", [])
+        if not rows:
+            break
+        all_rows.extend(rows)
+        if len(rows) < request_limit:
+            break
+        offset += request_limit
+
+    return all_rows
 #end of Zack's portion
 
 
@@ -51,8 +55,8 @@ from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 import plotly.express as px
 
-try: 
-  rows_all =  fetch_EOD(symbols, start_date, end_date, api_key)
+try:
+    rows_all = fetch_EOD(SYMBOLS, DATE_FROM, DATE_TO, API_KEY)
 
 # creating a DataFrame and only keeping the required columns while N/A values are filled 
     if not rows_all:
@@ -86,19 +90,26 @@ app = Dash(__name__)
 app.title = "Stock Performance Dashboard"
 
 app.layout = html.Div(
-    style={"maxWidth": "1100px", "margin": "0 auto","padding":"14px"},
-    children=[html.H1("Stock Performance Dashboard", style={"textAlign": "center"}),
-              html.Div(style={"display"=s "flex","alignItems":"flex end", "gap":"14px"},
-                children=[html.Div(style={"flex": "1 1 320px", "minWidth": "280px"},
-                     children=[html.Label("Select only two tickers:"),
-                         dcc.Dropdown(id="compare-tickers",
-                                  options=[{"label":s, "value":s} for s in sorted(df["symbol"].unique())],
-                                  value=["AAPL", "MSFT"],
-                                  multi=True
-                                     ),
-                              ],
-                                  ),
-                        
+    style={"maxWidth": "1100px", "margin": "0 auto", "padding": "14px"},
+    children=[
+        html.H1("Stock Performance Dashboard", style={"textAlign": "center"}),
+
+        html.Div(
+            style={"display": "flex", "alignItems": "flex-end", "gap": "14px"},
+            children=[
+                html.Div(
+                    style={"flex": "1 1 320px", "minWidth": "280px"},
+                    children=[
+                        html.Label("Select only two tickers:"),
+                        dcc.Dropdown(
+                            id="compare-tickers",
+                            options=[{"label": s, "value": s} for s in sorted(df["symbol"].unique())],
+                            value=["AAPL", "MSFT"],
+                            multi=True
+                        )
+                    ]
+                ),
+                html.Div(
                     children=[
                         html.Label("Select date range (within window):"),
                         dcc.DatePickerRange(
@@ -112,17 +123,19 @@ app.layout = html.Div(
                         html.Div(
                             f"Available data window: {DATE_FROM} → {DATE_TO}",
                             style={"fontSize": "12px", "marginTop": "6px"},
-                        ),
-                ],
-),
-],
-),
-                        html.Hr(),
-                        html.H2("Daily High (Time-Series Context)"),
-                        dcc.Graph(id="timeseries-high", config={"displayModeBar": True}),
-                        html.H2("Mean High Comparison Bar Chart"),
-                        dcc.Graph(id="mean-high-output", config={"displayModeBar": True}),
-],
+                        )
+                    ]
+                )
+            ]
+        ),
+
+        html.Hr(),
+        html.H2("Daily High (Time-Series Context)"),
+        dcc.Graph(id="timeseries-high", config={"displayModeBar": True}),
+
+        html.H2("Mean High Comparison Bar Chart"),
+        dcc.Graph(id="mean-high-output", config={"displayModeBar": True}),
+    ]
 )
 
 #validates the data and only allows two tickers (too complicated with more)
@@ -141,10 +154,11 @@ def _filter_data(df_input, tickers, start_date, end_date):
 
     start = pd.to_datetime(start_date)
     end = pd.to_datetime(end_date)
-    mask =
-        df_input["symbol"].isin(tickers)
-        & (df_input["date"] >= start)
-        & (df_input["date"] <= end)
+    mask = (
+            df_input["symbol"].isin(tickers)
+            & (df_input["date"] >= start)
+            & (df_input["date"] <= end)
+    )
     return df_input.loc[mask].copy()
 
 #main callback as it validates and filters the data and creates the figures aka chart
@@ -156,8 +170,7 @@ def _filter_data(df_input, tickers, start_date, end_date):
     Input("date-picker", "end_date"),
 )
 def update_figures(tickers, start_date, end_date):
-
-  # Validate selection and if there is any error or no data it gives blank space and message
+    # Validate selection and if there is any error or no data it gives blank space and message
     ok, msg = _validate_selection(tickers)
     if not ok:
         empty_fig = {
@@ -165,9 +178,11 @@ def update_figures(tickers, start_date, end_date):
             "layout": {
                 "title": msg,
                 "xaxis": {"visible": False},
-                "yaxis": {"visible": False}},}
+                "yaxis": {"visible": False},
+            },
+        }
         return empty_fig, empty_fig
-    
+
     filtered = _filter_data(df, tickers, start_date, end_date)
 
     if filtered.empty:
@@ -177,28 +192,31 @@ def update_figures(tickers, start_date, end_date):
             "layout": {
                 "title": msg,
                 "xaxis": {"visible": False},
-                "yaxis": {"visible": False}},
+                "yaxis": {"visible": False},
+            },
         }
         return empty_fig, empty_fig
       
 #creating a line graph to show the time series daily high
 
-   fig = px.line(
-        filtered,
-        x="date",
-        y="high",
-        color="symbol",
-        markers=True,
-        labels={"date": "Date", "high": "Daily High (USD)", "symbol": "Ticker"},
-        title=f"Daily High for {tickers[0]} vs {tickers[1]} ({start_date} → {end_date})",
-   )
+fig = px.line(
+    filtered,
+    x="date",
+    y="high",
+    color="symbol",
+    markers=True,
+    labels={"date": "Date", "high": "Daily High (USD)", "symbol": "Ticker"},
+    title=f"Daily High for {tickers[0]} vs {tickers[1]} ({start_date} → {end_date})",
+)
 
 #creating a bar chart to show the mean high for each stock and comparing the avg
-    mean_high = (
-        filtered.groupby("symbol", as_index=False)["high"].mean().rename(columns={"high": "mean_high"}))
+mean_high = (
+        filtered.groupby("symbol", as_index=False)["high"]
+        .mean()
+        .rename(columns={"high": "mean_high"})
+    )
 
-
-    bar_fig = px.bar(
+bar_fig = px.bar(
         mean_high,
         x="symbol",
         y="mean_high",
@@ -207,7 +225,7 @@ def update_figures(tickers, start_date, end_date):
         title=f"Mean High Comparison ({start_date} → {end_date})",
     )
 
-    return fig, bar_fig
+return fig, bar_fig
 
 #application run
 if __name__ == "__main__":
